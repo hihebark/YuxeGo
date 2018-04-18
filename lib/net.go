@@ -47,15 +47,29 @@ func DownloadVideo(urlvid string) {
 	if err != nil {
 		fmt.Printf("net:DownloadVideo:ParseQuery:%s\n", err)
 	}
-	fmt.Printf("Downloading: %s\n", string(videoData["title"][0]))
+	Good(fmt.Sprintf("Downloading: %s", SayMe(LIGHTRED, videoData["title"][0])))
+	format := formatSupported(videoData["fmt_list"][0])
+	
+	Run(fmt.Sprintf("Format supported: %s", SayMe(LIGHTRED, strings.Join(format, ", "))))
+	
 
 }
 
-//getVidId decode video
-func getVidID(url string) string {
+//getVidID get video id
+func getVidID(urlvid string) string {
 	//https://www.youtube.com/watch?v=XXXXXXXXXXX
-	urldecode := strings.Split(url, "?")
+	urldecode := strings.Split(urlvid, "?")
 	return strings.Split(urldecode[1], "=")[1]
+}
+
+//formatSupported get format supported
+func formatSupported(format string) []string {
+	var arrayFormat []string
+	sformat := strings.Split(format, ",")
+	for _, val := range sformat {
+		arrayFormat = append(arrayFormat, strings.Split(val,"x")[1])
+	}
+	return arrayFormat
 }
 
 //parseQuery to parse query
