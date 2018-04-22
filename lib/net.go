@@ -2,12 +2,13 @@ package lib
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strings"
 	"os"
-	"io"
+	"strings"
+	"time"
 )
 
 type VideoFlag struct {
@@ -16,6 +17,7 @@ type VideoFlag struct {
 	Format  string
 	Quality int
 }
+
 //Video information
 const (
 	VIDINFO = "https://youtube.com/get_video_info?video_id="
@@ -62,16 +64,17 @@ func DownloadVideo(videoflag VideoFlag) {
 	geturl, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
 	fmt.Printf("%s\n", geturl["url"][0])
 	getVideo(geturl["url"][0], videoData["title"][0])
-//	content, err = GetBody()
-//	if err != nil {
-//		Bad(fmt.Sprintf("net:DownloadVideo:GetBody%s\n", err))
-//	}
-	
+	duration, _ := time.ParseDuration("336.735s")
+	fmt.Printf("%s\n", duration)
+	//	content, err = GetBody()
+	//	if err != nil {
+	//		Bad(fmt.Sprintf("net:DownloadVideo:GetBody%s\n", err))
+	//	}
 
 }
 
-func getVideo(path string, name string){
-	
+func getVideo(path string, name string) {
+
 	response, err := http.Get(path)
 	if err != nil {
 		Bad(fmt.Sprintf("getVideo:%v", err))
