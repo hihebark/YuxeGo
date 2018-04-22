@@ -26,6 +26,17 @@ func main() {
 
 	fmt.Printf(BANNER)
 	flag.Parse()
-	lib.DownloadVideo(*url)
+	if *url != "" {
+		videodata := lib.VideoFlag{
+			URL:     *url,
+			Output:  *output,
+			Format:  *format,
+			Quality: *quality,
+		}
+		lib.DownloadVideo(videodata)
+	} else {
+		lib.Bad("No url provided.")
+		flag.PrintDefaults()
+	}
 
 }
