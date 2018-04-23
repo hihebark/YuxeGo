@@ -25,6 +25,7 @@ const (
 )
 
 type videoInfo struct {
+	URL       string
 	Duration  string //`json:"duration"`
 	Extension string //`json:"extension"`
 	Size      string //`json:size`
@@ -68,9 +69,10 @@ func DownloadVideo(videoflag VideoFlag) {
 	Run(fmt.Sprintf("Format supported: %s", SayMe(LIGHTRED, format)))
 	pars, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
 	videoinfoSlice := videoInfoSlice{}
-	for _, v := range pars["url"] {
+	for k, v := range pars["url"] {
 		vidinfo, _ := url.ParseQuery(v)
 		vi := videoInfo{
+			URL:       pars["url"][k],
 			Duration:  vidinfo["dur"][0],
 			Extension: vidinfo["mime"][0],
 			Size:      vidinfo["clen"][0],
@@ -79,15 +81,16 @@ func DownloadVideo(videoflag VideoFlag) {
 
 	}
 	//fmt.Printf("%d\n", videoinfoSlice)
+	fmt.Printf("Information about video \n")
 	for _, v := range videoinfoSlice.videoInfoSlice {
 		fmt.Printf("Duration: %10s - Extension: %-10s - Size: %10s\n", v.Duration, v.Extension, v.Size)
 	}
 	//	Good(parsItForMe(videoData.Encode(), "url_encoded_fmt_stream_map"))
-	//geturl, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
+	geturl, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
 	//val := parseQuery(videoData, "url_encoded_fmt_stream_map")
 	//fmt.Printf("%s\n", val)
-	//	fmt.Printf("%s\n", geturl["url"][0])
-	//	getVideo(geturl["url"][0], videoData["title"][0])
+	//fmt.Printf("%s\n", geturl["url"][0])
+	getVideo(geturl["url"][0], videoData["title"][0])
 	//	duration, _ := time.ParseDuration("336.735s")
 	//	fmt.Printf("%s\n", duration)
 	//	content, err = GetBody()
