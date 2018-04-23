@@ -3,7 +3,8 @@ YuxeGo
 
 Work in progress. Nothing to see here!
 
-####Exemple how to use
+Exemple how to use
+------------------
 
 `./YuxeGo -u https://www.youtube.com/watch?v=XXXXXXXXXXX`
 

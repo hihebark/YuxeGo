@@ -19,7 +19,8 @@ func init() {
 }
 
 const (
-	BANNER = "\033[92m  .----.\nt(\033[91m.\033[0m___\033[91m.\033[92mt) - Yuxe\n  `----\033[0m\n"
+	BANNER  = "\033[92m  .----.\nt(\033[91m.\033[0m___\033[91m.\033[92mt) - Yuxe\n  `----\033[0m\n"
+	VERSION = "0.1.0-dev"
 )
 
 func main() {

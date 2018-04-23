@@ -8,9 +8,10 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"time"
+	//	"time"
 )
 
+//VideoFlag struct
 type VideoFlag struct {
 	URL     string
 	Output  string
@@ -23,11 +24,14 @@ const (
 	VIDINFO = "https://youtube.com/get_video_info?video_id="
 )
 
-//VideoInformation all information about video
-type VideoInformation struct {
-	URL       string `json:"url"`
-	VideoName string `json:"videoname"`
-	Data      string `json:data`
+type videoInfo struct {
+	Duration  string //`json:"duration"`
+	Extension string //`json:"extension"`
+	Size      string //`json:size`
+}
+
+type videoInfoSlice struct {
+	videoInfoSlice []videoInfo //`json:"url"`
 }
 
 //GetBody fetch the body
@@ -50,7 +54,8 @@ func GetBody(urlVideo string) (string, error) {
 func DownloadVideo(videoflag VideoFlag) {
 
 	//var videoParse map[string]string
-	getVideoInfo, err := GetBody(VIDINFO + getVidID(videoflag.URL))
+	vidId := getVidID(strings.Split(videoflag.URL, "?")[1])
+	getVideoInfo, err := GetBody(VIDINFO + vidId)
 	if err != nil {
 		fmt.Printf("net:DownloadVideo:GetBody:%s\n", err)
 	}
@@ -58,19 +63,67 @@ func DownloadVideo(videoflag VideoFlag) {
 	if err != nil {
 		fmt.Printf("net:DownloadVideo:ParseQuery:%s\n", err)
 	}
-	Good(fmt.Sprintf("Downloading: %s", SayMe(LIGHTRED, videoData["title"][0])))
-	format := strings.Join(formatSupported(videoData["fmt_list"][0]), ", ")
+	Good(fmt.Sprintf("Downloading: %s", SayMe(LIGHTRED, videoData.Get("title"))))
+	format := strings.Join(formatSupported(videoData.Get("fmt_list")), ", ")
 	Run(fmt.Sprintf("Format supported: %s", SayMe(LIGHTRED, format)))
-	geturl, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
-	fmt.Printf("%s\n", geturl["url"][0])
-	getVideo(geturl["url"][0], videoData["title"][0])
-	duration, _ := time.ParseDuration("336.735s")
-	fmt.Printf("%s\n", duration)
+	pars, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
+	videoinfoSlice := videoInfoSlice{}
+	for _, v := range pars["url"] {
+		vidinfo, _ := url.ParseQuery(v)
+		vi := videoInfo{
+			Duration:  vidinfo["dur"][0],
+			Extension: vidinfo["mime"][0],
+			Size:      vidinfo["clen"][0],
+		}
+		videoinfoSlice.videoInfoSlice = append(videoinfoSlice.videoInfoSlice, vi)
+
+	}
+	//fmt.Printf("%d\n", videoinfoSlice)
+	for _, v := range videoinfoSlice.videoInfoSlice {
+		fmt.Printf("Duration: %10s - Extension: %-10s - Size: %10s\n", v.Duration, v.Extension, v.Size)
+	}
+	//	Good(parsItForMe(videoData.Encode(), "url_encoded_fmt_stream_map"))
+	//geturl, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
+	//val := parseQuery(videoData, "url_encoded_fmt_stream_map")
+	//fmt.Printf("%s\n", val)
+	//	fmt.Printf("%s\n", geturl["url"][0])
+	//	getVideo(geturl["url"][0], videoData["title"][0])
+	//	duration, _ := time.ParseDuration("336.735s")
+	//	fmt.Printf("%s\n", duration)
 	//	content, err = GetBody()
 	//	if err != nil {
 	//		Bad(fmt.Sprintf("net:DownloadVideo:GetBody%s\n", err))
 	//	}
 
+}
+
+func parsItForMe(value string, key string) string {
+
+	data, err := url.ParseQuery(string(value))
+	if err != nil {
+		fmt.Printf("getVidID:%s %v\n", value, err)
+	}
+	return data.Get(key)
+
+}
+
+//getVidID get video id
+func getVidID(urlvid string) string {
+	id, err := url.ParseQuery(string(urlvid))
+	if err != nil {
+		fmt.Printf("getVidID:%s %v\n", urlvid, err)
+	}
+	return id.Get("v")
+}
+
+//formatSupported get format supported
+func formatSupported(format string) []string {
+	var arrayFormat []string
+	sformat := strings.Split(format, ",")
+	for _, val := range sformat {
+		arrayFormat = append(arrayFormat, strings.Split(val, "x")[1])
+	}
+	return arrayFormat
 }
 
 func getVideo(path string, name string) {
@@ -97,39 +150,3 @@ func getVideo(path string, name string) {
 	}
 
 }
-
-//getVidID get video id
-func getVidID(urlvid string) string {
-	//https://www.youtube.com/watch?v=XXXXXXXXXXX
-	urldecode := strings.Split(urlvid, "?")
-	return strings.Split(urldecode[1], "=")[1]
-}
-
-//formatSupported get format supported
-func formatSupported(format string) []string {
-	var arrayFormat []string
-	sformat := strings.Split(format, ",")
-	for _, val := range sformat {
-		arrayFormat = append(arrayFormat, strings.Split(val, "x")[1])
-	}
-	return arrayFormat
-}
-
-//parseQuery to parse query
-//func parseQuery(query string, key string) string{
-
-//	var querymap stringꔆ
-//	if key == "" {
-//		querymap, err := url.ParseQuery(string(query))
-//		if err != nil {
-//			fmt.Printf("%s\n", err)
-//		}
-//	} else {
-//		querymap, err := url.ParseQuery(string(query[key]))
-//		if err != nil {
-//			fmt.Printf("%s\n", err)
-//		}
-//	}
-//	return querymap
-
-//}
