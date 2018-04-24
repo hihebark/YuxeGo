@@ -8,7 +8,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	//	"time"
+	"strconv"
+	"time"
 )
 
 //VideoFlag struct
@@ -28,7 +29,7 @@ type videoInfo struct {
 	URL       string
 	Duration  string //`json:"duration"`
 	Extension string //`json:"extension"`
-	Size      string //`json:size`
+	Size      int64 //`json:size`
 }
 
 type videoInfoSlice struct {
@@ -71,26 +72,25 @@ func DownloadVideo(videoflag VideoFlag) {
 	videoinfoSlice := videoInfoSlice{}
 	for k, v := range pars["url"] {
 		vidinfo, _ := url.ParseQuery(v)
+		size, _ := strconv.ParseInt(vidinfo["clen"][0], 10, 64)
+		duration, _ := time.ParseDuration(fmt.Sprintf("%ss",vidinfo["dur"][0]))
+		//fmt.Printf("%s\n", fmt.Sprintf("%ss",vidinfo["dur"][0]))
+		//fmt.Printf("%v - %v - %v\n", duration, duration.Minutes(), duration.String())
 		vi := videoInfo{
 			URL:       pars["url"][k],
-			Duration:  vidinfo["dur"][0],
+			Duration:  duration.Round(time.Second).String(),
 			Extension: vidinfo["mime"][0],
-			Size:      vidinfo["clen"][0],
+			Size:      size,
 		}
 		videoinfoSlice.videoInfoSlice = append(videoinfoSlice.videoInfoSlice, vi)
 
 	}
-	//fmt.Printf("%d\n", videoinfoSlice)
-	fmt.Printf("Information about video \n")
-	for _, v := range videoinfoSlice.videoInfoSlice {
-		fmt.Printf("Duration: %10s - Extension: %-10s - Size: %10s\n", v.Duration, v.Extension, v.Size)
-	}
-	//	Good(parsItForMe(videoData.Encode(), "url_encoded_fmt_stream_map"))
-	geturl, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
-	//val := parseQuery(videoData, "url_encoded_fmt_stream_map")
-	//fmt.Printf("%s\n", val)
-	//fmt.Printf("%s\n", geturl["url"][0])
-	getVideo(geturl["url"][0], videoData["title"][0])
+//	fmt.Printf("Information about video \n")
+//	for _, v := range videoinfoSlice.videoInfoSlice {
+//		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
+//			v.Duration, v.Extension, byteConverter(v.Size))
+//	}
+	getVideo(videoinfoSlice.videoInfoSlice[0].URL, videoData["title"][0])
 	//	duration, _ := time.ParseDuration("336.735s")
 	//	fmt.Printf("%s\n", duration)
 	//	content, err = GetBody()
@@ -152,4 +152,19 @@ func getVideo(path string, name string) {
 		Bad(fmt.Sprintf("io.Copy:%v", err))
 	}
 
+}
+
+
+func byteConverter(length int64) string {
+	mbyte := []string{"bytes", "KB", "MB", "GB", "TB"}
+	if length == -1 {
+		return "0 byte"
+	}
+	for _, x := range mbyte {
+		if length < 1024.0 {
+			return fmt.Sprintf("%3.1d %s", length, x)
+		}
+		length = length / 1024.0
+	}
+	return ""
 }
