@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -29,7 +29,7 @@ type videoInfo struct {
 	URL       string
 	Duration  string //`json:"duration"`
 	Extension string //`json:"extension"`
-	Size      int64 //`json:size`
+	Size      int64  //`json:size`
 }
 
 type videoInfoSlice struct {
@@ -73,7 +73,7 @@ func DownloadVideo(videoflag VideoFlag) {
 	for k, v := range pars["url"] {
 		vidinfo, _ := url.ParseQuery(v)
 		size, _ := strconv.ParseInt(vidinfo["clen"][0], 10, 64)
-		duration, _ := time.ParseDuration(fmt.Sprintf("%ss",vidinfo["dur"][0]))
+		duration, _ := time.ParseDuration(fmt.Sprintf("%ss", vidinfo["dur"][0]))
 		//fmt.Printf("%s\n", fmt.Sprintf("%ss",vidinfo["dur"][0]))
 		//fmt.Printf("%v - %v - %v\n", duration, duration.Minutes(), duration.String())
 		vi := videoInfo{
@@ -85,18 +85,12 @@ func DownloadVideo(videoflag VideoFlag) {
 		videoinfoSlice.videoInfoSlice = append(videoinfoSlice.videoInfoSlice, vi)
 
 	}
-//	fmt.Printf("Information about video \n")
-//	for _, v := range videoinfoSlice.videoInfoSlice {
-//		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
-//			v.Duration, v.Extension, byteConverter(v.Size))
-//	}
+	//	fmt.Printf("Information about video \n")
+	//	for _, v := range videoinfoSlice.videoInfoSlice {
+	//		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
+	//			v.Duration, v.Extension, byteConverter(v.Size))
+	//	}//maybe add scanner here to let the user choose.
 	getVideo(videoinfoSlice.videoInfoSlice[0].URL, videoData["title"][0])
-	//	duration, _ := time.ParseDuration("336.735s")
-	//	fmt.Printf("%s\n", duration)
-	//	content, err = GetBody()
-	//	if err != nil {
-	//		Bad(fmt.Sprintf("net:DownloadVideo:GetBody%s\n", err))
-	//	}
 
 }
 
@@ -153,7 +147,6 @@ func getVideo(path string, name string) {
 	}
 
 }
-
 
 func byteConverter(length int64) string {
 	mbyte := []string{"bytes", "KB", "MB", "GB", "TB"}
