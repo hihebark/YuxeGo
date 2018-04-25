@@ -30,6 +30,7 @@ type videoInfo struct {
 	Duration  string //`json:"duration"`
 	Extension string //`json:"extension"`
 	Size      int64  //`json:size`
+	Quality   string
 }
 
 type videoInfoSlice struct {
@@ -55,9 +56,8 @@ func GetBody(urlVideo string) (string, error) {
 //DownloadVideo donwload video from url
 func DownloadVideo(videoflag VideoFlag) {
 
-	//var videoParse map[string]string
-	vidId := getVidID(strings.Split(videoflag.URL, "?")[1])
-	getVideoInfo, err := GetBody(VIDINFO + vidId)
+	vidID := getVidID(strings.Split(videoflag.URL, "?")[1])
+	getVideoInfo, err := GetBody(VIDINFO + vidID)
 	if err != nil {
 		fmt.Printf("net:DownloadVideo:GetBody:%s\n", err)
 	}
@@ -66,41 +66,43 @@ func DownloadVideo(videoflag VideoFlag) {
 		fmt.Printf("net:DownloadVideo:ParseQuery:%s\n", err)
 	}
 	Good(fmt.Sprintf("Downloading: %s", SayMe(LIGHTRED, videoData.Get("title"))))
-	format := strings.Join(formatSupported(videoData.Get("fmt_list")), ", ")
+	format := videoData.Get("fmt_list")
 	Run(fmt.Sprintf("Format supported: %s", SayMe(LIGHTRED, format)))
+	//http://blog.sorlo.com/youtube-fmt-list/
+	//formatSupported
+	// From here https://pastebin.com/5hDj7kLj
+	// fmt=5    240p          vq=small     flv  mp3
+	// fmt=18   360p          vq=medium    mp4  aac
+	// fmt=34   360p          vq=medium    flv  aac
+	// fmt=43   360p          vq=medium    vp8  vorbis
+	// fmt=35   480p          vq=large     flv  aac
+	// fmt=44   480p          vq=large     vp8  vorbis
+	// fmt=22   720p          vq=hd720     mp4  aac
+	// fmt=45   720p          vq=hd720     vp8  vorbis
+	// fmt=37  1080p          vq=hd1080    mp4  aac
+	// fmt=46  1080p          vq=hd1080    vp8  vorbis
 	pars, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
 	videoinfoSlice := videoInfoSlice{}
 	for k, v := range pars["url"] {
 		vidinfo, _ := url.ParseQuery(v)
 		size, _ := strconv.ParseInt(vidinfo["clen"][0], 10, 64)
 		duration, _ := time.ParseDuration(fmt.Sprintf("%ss", vidinfo["dur"][0]))
-		//fmt.Printf("%s\n", fmt.Sprintf("%ss",vidinfo["dur"][0]))
-		//fmt.Printf("%v - %v - %v\n", duration, duration.Minutes(), duration.String())
 		vi := videoInfo{
 			URL:       pars["url"][k],
 			Duration:  duration.Round(time.Second).String(),
 			Extension: vidinfo["mime"][0],
 			Size:      size,
+			Quality:   pars["url"][0],
 		}
 		videoinfoSlice.videoInfoSlice = append(videoinfoSlice.videoInfoSlice, vi)
 
 	}
-	//	fmt.Printf("Information about video \n")
-	//	for _, v := range videoinfoSlice.videoInfoSlice {
-	//		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
-	//			v.Duration, v.Extension, byteConverter(v.Size))
-	//	}//maybe add scanner here to let the user choose.
-	getVideo(videoinfoSlice.videoInfoSlice[0].URL, videoData["title"][0])
-
-}
-
-func parsItForMe(value string, key string) string {
-
-	data, err := url.ParseQuery(string(value))
-	if err != nil {
-		fmt.Printf("getVidID:%s %v\n", value, err)
-	}
-	return data.Get(key)
+	Good("Information about video")
+	for _, v := range videoinfoSlice.videoInfoSlice {
+		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
+			v.Duration, v.Extension, byteConverter(v.Size))
+	} //maybe add scanner here to let the user choose.
+	//getVideo(videoinfoSlice.videoInfoSlice[0].URL, videoData["title"][0])
 
 }
 
@@ -111,16 +113,6 @@ func getVidID(urlvid string) string {
 		fmt.Printf("getVidID:%s %v\n", urlvid, err)
 	}
 	return id.Get("v")
-}
-
-//formatSupported get format supported
-func formatSupported(format string) []string {
-	var arrayFormat []string
-	sformat := strings.Split(format, ",")
-	for _, val := range sformat {
-		arrayFormat = append(arrayFormat, strings.Split(val, "x")[1])
-	}
-	return arrayFormat
 }
 
 func getVideo(path string, name string) {
@@ -160,4 +152,22 @@ func byteConverter(length int64) string {
 		length = length / 1024.0
 	}
 	return ""
+}
+
+//progressBar
+func progressBar(size string, file string) {
+
+	//ls -s main.go | awk '{print $1}'
+	var percentage int
+	style := "#"
+	var oldsize int64
+	for {
+		percentage = sfilenow*100/size
+		if percentage == 100 {
+			break
+		}
+		fmt.Printf("[%20s] %d\r", style, percentage)
+		style += "#"
+	}
+
 }
