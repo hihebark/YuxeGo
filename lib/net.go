@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +18,7 @@ type VideoFlag struct {
 	URL     string
 	Output  string
 	Format  string
-	Quality int
+	Quality string
 }
 
 //Video information
@@ -34,7 +35,7 @@ type videoInfo struct {
 }
 
 type videoInfoSlice struct {
-	videoInfoSlice []videoInfo //`json:"url"`
+	videoInfo []videoInfo //`json:"url"`
 }
 
 //GetBody fetch the body
@@ -56,6 +57,7 @@ func GetBody(urlVideo string) (string, error) {
 //DownloadVideo donwload video from url
 func DownloadVideo(videoflag VideoFlag) {
 
+	viSlice := videoInfoSlice{}
 	vidID := getVidID(strings.Split(videoflag.URL, "?")[1])
 	getVideoInfo, err := GetBody(VIDINFO + vidID)
 	if err != nil {
@@ -65,9 +67,39 @@ func DownloadVideo(videoflag VideoFlag) {
 	if err != nil {
 		fmt.Printf("net:DownloadVideo:ParseQuery:%s\n", err)
 	}
-	Good(fmt.Sprintf("Downloading: %s", SayMe(LIGHTRED, videoData.Get("title"))))
-	format := videoData.Get("fmt_list")
-	Run(fmt.Sprintf("Format supported: %s", SayMe(LIGHTRED, format)))
+	name := videoData.Get("title")
+	Good(fmt.Sprintf("Downloading: %s", SayMe(LIGHTRED, name)))
+	pars, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
+	for k, v := range pars["url"] {
+		vidinfo, _ := url.ParseQuery(v)
+		size, _ := strconv.ParseInt(vidinfo["clen"][0], 10, 64)
+		duration, _ := time.ParseDuration(fmt.Sprintf("%ss", vidinfo["dur"][0]))
+		vi := videoInfo{
+			URL:       pars["url"][k],
+			Duration:  duration.Round(time.Second).String(),
+			Extension: vidinfo["mime"][0],
+			Size:      size,
+			Quality:   vidinfo["itag"][0],
+		}
+		viSlice.videoInfo = append(viSlice.videoInfo, vi)
+
+	}
+	if videoflag.Quality != "" {
+		for _, v := range viSlice.videoInfo {
+			if v.Quality == videoflag.Quality {
+				fmt.Printf("Downloading with the quality: %s\n", videoflag.Quality)
+				getVideo(v.URL, name)
+				break
+			}
+		}
+	} else {
+		sort.Slice(viSlice.videoInfo,
+			func(i, j int) bool {
+				return viSlice.videoInfo[j].Quality < viSlice.videoInfo[i].Quality
+			})
+		fmt.Printf("Downloading with the quality: %s\n", viSlice.videoInfo[0].Quality)
+		getVideo(viSlice.videoInfo[0].URL, name)
+	}
 	//http://blog.sorlo.com/youtube-fmt-list/
 	//formatSupported
 	// From here https://pastebin.com/5hDj7kLj
@@ -81,28 +113,12 @@ func DownloadVideo(videoflag VideoFlag) {
 	// fmt=45   720p          vq=hd720     vp8  vorbis
 	// fmt=37  1080p          vq=hd1080    mp4  aac
 	// fmt=46  1080p          vq=hd1080    vp8  vorbis
-	pars, _ := url.ParseQuery(videoData["url_encoded_fmt_stream_map"][0])
-	videoinfoSlice := videoInfoSlice{}
-	for k, v := range pars["url"] {
-		vidinfo, _ := url.ParseQuery(v)
-		size, _ := strconv.ParseInt(vidinfo["clen"][0], 10, 64)
-		duration, _ := time.ParseDuration(fmt.Sprintf("%ss", vidinfo["dur"][0]))
-		vi := videoInfo{
-			URL:       pars["url"][k],
-			Duration:  duration.Round(time.Second).String(),
-			Extension: vidinfo["mime"][0],
-			Size:      size,
-			Quality:   pars["url"][0],
-		}
-		videoinfoSlice.videoInfoSlice = append(videoinfoSlice.videoInfoSlice, vi)
-
-	}
-	Good("Information about video")
-	for _, v := range videoinfoSlice.videoInfoSlice {
-		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
-			v.Duration, v.Extension, byteConverter(v.Size))
-	} //maybe add scanner here to let the user choose.
-	//getVideo(videoinfoSlice.videoInfoSlice[0].URL, videoData["title"][0])
+	//getVideo(viSlice.videoInfo[0].URL, videoData["title"][0])
+	//	Good("Information about video")
+	//	for _, v := range viSlice.videoInfo {
+	//		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
+	//			v.Duration, v.Extension, byteConverter(v.Size))
+	//} //maybe add scanner here to let the user choose.
 
 }
 
@@ -155,14 +171,15 @@ func byteConverter(length int64) string {
 }
 
 //progressBar
-func progressBar(size string, file string) {
+func progressBar(size int, file string) {
 
 	//ls -s main.go | awk '{print $1}'
 	var percentage int
 	style := "#"
-	var oldsize int64
+	//var oldsize int
+	var sfilenow int
 	for {
-		percentage = sfilenow*100/size
+		percentage = sfilenow * 100 / size
 		if percentage == 100 {
 			break
 		}

@@ -7,17 +7,17 @@ import (
 )
 
 var (
-	url, format, output *string
-	quality             *int
+	url, format, output, quality *string
 )
 
 func init() {
 	url = flag.String("u", "", "URL for the Youtube video.")
 	format = flag.String("f", "", "Format of the output mp3,mp4,flv ...")
 	output = flag.String("o", "~/Download/YuxeGo/", "Output Folder.")
-	quality = flag.Int("q", 720, "Quality 720,480,360,240,144 ...")
+	quality = flag.String("q", "", "Quality 720,480,360,240,144 ...")
 }
 
+//Const: banner and verion of the app
 const (
 	BANNER  = "\033[92m  .----.\nt(\033[91m.\033[0m___\033[91m.\033[92mt) - Yuxe\n  `----\033[0m\n"
 	VERSION = "0.1.0-dev"
