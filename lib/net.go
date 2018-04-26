@@ -87,7 +87,7 @@ func DownloadVideo(videoflag VideoFlag) {
 	if videoflag.Quality != "" {
 		for _, v := range viSlice.videoInfo {
 			if v.Quality == videoflag.Quality {
-				fmt.Printf("Downloading with the quality: %s\n", videoflag.Quality)
+				Good(fmt.Sprintf("Downloading with the quality: %s\n", videoflag.Quality))
 				getVideo(v.URL, name)
 				break
 			}
@@ -97,7 +97,7 @@ func DownloadVideo(videoflag VideoFlag) {
 			func(i, j int) bool {
 				return viSlice.videoInfo[j].Quality < viSlice.videoInfo[i].Quality
 			})
-		fmt.Printf("Downloading with the quality: %s\n", viSlice.videoInfo[0].Quality)
+		Good(fmt.Sprintf("Downloading with the quality: %s\n", viSlice.videoInfo[0].Quality))
 		getVideo(viSlice.videoInfo[0].URL, name)
 	}
 	//http://blog.sorlo.com/youtube-fmt-list/
@@ -113,12 +113,6 @@ func DownloadVideo(videoflag VideoFlag) {
 	// fmt=45   720p          vq=hd720     vp8  vorbis
 	// fmt=37  1080p          vq=hd1080    mp4  aac
 	// fmt=46  1080p          vq=hd1080    vp8  vorbis
-	//getVideo(viSlice.videoInfo[0].URL, videoData["title"][0])
-	//	Good("Information about video")
-	//	for _, v := range viSlice.videoInfo {
-	//		fmt.Printf("Duration: %s - Extension: %-10s - Size: %10s\n",
-	//			v.Duration, v.Extension, byteConverter(v.Size))
-	//} //maybe add scanner here to let the user choose.
 
 }
 
@@ -156,7 +150,7 @@ func getVideo(path string, name string) {
 
 }
 
-func byteConverter(length int64) string {
+func ByteConverter(length int64) string {
 	mbyte := []string{"bytes", "KB", "MB", "GB", "TB"}
 	if length == -1 {
 		return "0 byte"
@@ -171,20 +165,21 @@ func byteConverter(length int64) string {
 }
 
 //progressBar
-func progressBar(size int, file string) {
+func progressBar(size int64, path string) {
 
 	//ls -s main.go | awk '{print $1}'
-	var percentage int
-	style := "#"
-	//var oldsize int
-	var sfilenow int
-	for {
-		percentage = sfilenow * 100 / size
-		if percentage == 100 {
-			break
-		}
-		fmt.Printf("[%20s] %d\r", style, percentage)
-		style += "#"
-	}
+//	var percentage int
+//	style := "#"
+//	//var oldsize int
+//	for {
+//		sfilenow, _ := strconv.ParseInt(GetSizeFile(path), 0, 0)
+//		percentage = int(sfilenow) * 100 / size
+//		if sfilenow == size {
+//			fmt.Printf("\n")
+//			break
+//		}
+//		fmt.Printf("[%20s] %d\r", style, percentage)
+//		style += "#"
+//	}
 
 }
