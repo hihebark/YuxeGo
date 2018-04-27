@@ -166,7 +166,8 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 	wc.Total += int64(n)
 	per := wc.Total * 100 / wc.Size
 	r := math.Ceil(float64(per / 2))
-	fmt.Printf("[%-50s] %d%% \r", SayMe(RED, strings.Repeat("#", int(r))), per)
+	fmt.Printf(" [%s%s] %d%% \r",
+		SayMe(RED, strings.Repeat("#", int(r))), strings.Repeat("+", int(50-r)), per)
 	return n, nil
 
 }
