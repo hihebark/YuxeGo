@@ -9,7 +9,6 @@ Exemple how to use
 `./YuxeGo -u https://www.youtube.com/watch?v=XXXXXXXXXXX`
 
 ```
-
   .----.
 t(.___.t) - Yuxe
   `----
@@ -22,5 +21,4 @@ Usage of ./YuxeGo:
     	Quality 720,480,360,240,144 ...
   -u string
     	URL for the Youtube video.
-exit status 2
 ```
