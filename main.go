@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	url, output, quality *string
-	convert              *bool
+	url, output, quality string
+	convert              bool
 )
 
 func init() {
-	url = flag.String("u", "", "URL for the Youtube video.")
-	convert = flag.Bool("mp3", false, "Convert to mp3 format if set.")
-	output = flag.String("o", "Downloads/YuxeGo/", "Output Folder.")
-	quality = flag.String("q", "", "Quality 720,480,360,240,144 ...")
+	flag.StringVar(&url, "u", "", "URL for the Youtube video.")
+	flag.BoolVar(&convert, "mp3", false, "Convert to mp3 format if set.")
+	flag.StringVar(&output, "o", "Downloads/YuxeGo/", "Output Folder.")
+	flag.StringVar(&quality, "q", "", "Quality 720,480,360,240,144 ...")
 }
 
 //Const: banner and verion of the app
@@ -28,12 +28,12 @@ func main() {
 
 	fmt.Printf(BANNER)
 	flag.Parse()
-	if *url != "" {
+	if len(url) != 0 {
 		videodata := lib.VideoFlag{
-			URL:     *url,
-			Output:  *output,
-			Convert: *convert,
-			Quality: *quality,
+			URL:     url,
+			Output:  output,
+			Convert: convert,
+			Quality: quality,
 		}
 		lib.DownloadVideo(videodata)
 	} else {
