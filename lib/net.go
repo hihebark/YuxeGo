@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -36,6 +37,11 @@ type videoInfo struct {
 
 type videoInfoSlice struct {
 	videoInfo []videoInfo //`json:"url"`
+}
+
+type writeCounter struct {
+	Size  int64 //size of the file
+	Total int64 // Total # of bytes written
 }
 
 //GetBody fetch the body
@@ -87,8 +93,9 @@ func DownloadVideo(videoflag VideoFlag) {
 	if videoflag.Quality != "" {
 		for _, v := range viSlice.videoInfo {
 			if v.Quality == videoflag.Quality {
-				Good(fmt.Sprintf("Downloading with the quality: %s\n", videoflag.Quality))
-				getVideo(v.URL, name)
+				Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
+					videoflag.Quality, byteConverter(viSlice.videoInfo[0].Size)))
+				getVideo(v.URL, name, v.Size)
 				break
 			}
 		}
@@ -97,8 +104,9 @@ func DownloadVideo(videoflag VideoFlag) {
 			func(i, j int) bool {
 				return viSlice.videoInfo[j].Quality < viSlice.videoInfo[i].Quality
 			})
-		Good(fmt.Sprintf("Downloading with the quality: %s\n", viSlice.videoInfo[0].Quality))
-		getVideo(viSlice.videoInfo[0].URL, name)
+		Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
+			viSlice.videoInfo[0].Quality, byteConverter(viSlice.videoInfo[0].Size)))
+		getVideo(viSlice.videoInfo[0].URL, name, viSlice.videoInfo[0].Size)
 	}
 	//http://blog.sorlo.com/youtube-fmt-list/
 	//formatSupported
@@ -125,7 +133,7 @@ func getVidID(urlvid string) string {
 	return id.Get("v")
 }
 
-func getVideo(path string, name string) {
+func getVideo(path string, name string, size int64) {
 
 	response, err := http.Get(path)
 	if err != nil {
@@ -144,13 +152,26 @@ func getVideo(path string, name string) {
 	if err != nil {
 		Bad(fmt.Sprintf("os.Create:%v", err))
 	}
-	if _, err := io.Copy(vfile, response.Body); err != nil {
+	counter := &writeCounter{Size: size}
+	if _, err := io.Copy(vfile, io.TeeReader(response.Body, counter)); err != nil {
 		Bad(fmt.Sprintf("io.Copy:%v", err))
 	}
+	fmt.Printf("\n")
 
 }
 
-func ByteConverter(length int64) string {
+func (wc *writeCounter) Write(p []byte) (int, error) {
+
+	n := len(p)
+	wc.Total += int64(n)
+	per := wc.Total * 100 / wc.Size
+	r := math.Ceil(float64(per / 2))
+	fmt.Printf("[%-50s] %d%% \r", SayMe(RED, strings.Repeat("#", int(r))), per)
+	return n, nil
+
+}
+
+func byteConverter(length int64) string {
 	mbyte := []string{"bytes", "KB", "MB", "GB", "TB"}
 	if length == -1 {
 		return "0 byte"
@@ -162,24 +183,4 @@ func ByteConverter(length int64) string {
 		length = length / 1024.0
 	}
 	return ""
-}
-
-//progressBar
-func progressBar(size int64, path string) {
-
-	//ls -s main.go | awk '{print $1}'
-//	var percentage int
-//	style := "#"
-//	//var oldsize int
-//	for {
-//		sfilenow, _ := strconv.ParseInt(GetSizeFile(path), 0, 0)
-//		percentage = int(sfilenow) * 100 / size
-//		if sfilenow == size {
-//			fmt.Printf("\n")
-//			break
-//		}
-//		fmt.Printf("[%20s] %d\r", style, percentage)
-//		style += "#"
-//	}
-
 }
