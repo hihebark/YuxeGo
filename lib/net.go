@@ -19,7 +19,7 @@ import (
 type VideoFlag struct {
 	URL     string
 	Output  string
-	Format  bool
+	Convert bool
 	Quality string
 }
 
@@ -62,10 +62,10 @@ func GetBody(urlVideo string) (string, error) {
 }
 
 //DownloadVideo donwload video from url
-func DownloadVideo(videoflag VideoFlag) {
+func DownloadVideo(vf VideoFlag) {
 
 	viSlice := videoInfoSlice{}
-	vidID := getVidID(strings.Split(videoflag.URL, "?")[1])
+	vidID := getVidID(strings.Split(vf.URL, "?")[1])
 	getVideoInfo, err := GetBody(VIDINFO + vidID)
 	if err != nil {
 		fmt.Printf("net:DownloadVideo:GetBody:%s\n", err)
@@ -91,13 +91,13 @@ func DownloadVideo(videoflag VideoFlag) {
 		viSlice.videoInfo = append(viSlice.videoInfo, vi)
 
 	}
-	if videoflag.Quality != "" {
+	if vf.Quality != "" {
 		for _, v := range viSlice.videoInfo {
-			if v.Quality == videoflag.Quality {
+			if v.Quality == vf.Quality {
 				Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
-					videoflag.Quality, byteConverter(viSlice.videoInfo[0].Size)))
-				
-				getVideo(v.URL, name, v.Size, videoflag.Output)
+					vf.Quality, byteConverter(viSlice.videoInfo[0].Size)))
+
+				getVideo(v.URL, name, v.Size, vf.Output, vf.Convert)
 				break
 			}
 		}
@@ -108,8 +108,8 @@ func DownloadVideo(videoflag VideoFlag) {
 			})
 		Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
 			viSlice.videoInfo[0].Quality, byteConverter(viSlice.videoInfo[0].Size)))
-		
-		getVideo(viSlice.videoInfo[0].URL, name, viSlice.videoInfo[0].Size, videoflag.Output)
+
+		getVideo(viSlice.videoInfo[0].URL, name, viSlice.videoInfo[0].Size, vf.Output, vf.Convert)
 	}
 	//http://blog.sorlo.com/youtube-fmt-list/
 	//formatSupported
@@ -136,7 +136,7 @@ func getVidID(urlvid string) string {
 	return id.Get("v")
 }
 
-func getVideo(url string, name string, size int64, output string) {
+func getVideo(url string, name string, size int64, output string, conv bool) {
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -149,7 +149,7 @@ func getVideo(url string, name string, size int64, output string) {
 	user, err := user.Current()
 	Printerr(err, "net:getVideo:user.Current:")
 	homeFolder := user.HomeDir
-	outputFolder := homeFolder +"/"+ output
+	outputFolder := homeFolder + "/" + output
 	err = os.MkdirAll(outputFolder, 0755)
 	if err != nil {
 		Bad(fmt.Sprintf("getVideo:MKdirAll:%v", err))
@@ -165,6 +165,9 @@ func getVideo(url string, name string, size int64, output string) {
 		Bad(fmt.Sprintf("io.Copy:%v", err))
 	}
 	fmt.Printf("\n")
+	if conv {
+		ConvertToMp3(fmt.Sprintf("%s%s", outputFolder, name))
+	}
 
 }
 

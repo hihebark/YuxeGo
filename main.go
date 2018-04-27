@@ -8,12 +8,12 @@ import (
 
 var (
 	url, output, quality *string
-	format *bool
+	convert              *bool
 )
 
 func init() {
 	url = flag.String("u", "", "URL for the Youtube video.")
-	format = flag.Bool("mp3", false, "Convert to mp3 format if set.")
+	convert = flag.Bool("mp3", false, "Convert to mp3 format if set.")
 	output = flag.String("o", "Downloads/YuxeGo/", "Output Folder.")
 	quality = flag.String("q", "", "Quality 720,480,360,240,144 ...")
 }
@@ -32,7 +32,7 @@ func main() {
 		videodata := lib.VideoFlag{
 			URL:     *url,
 			Output:  *output,
-			Format:  *format,
+			Convert: *convert,
 			Quality: *quality,
 		}
 		lib.DownloadVideo(videodata)
