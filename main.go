@@ -7,13 +7,14 @@ import (
 )
 
 var (
-	url, format, output, quality *string
+	url, output, quality *string
+	format *bool
 )
 
 func init() {
 	url = flag.String("u", "", "URL for the Youtube video.")
-	format = flag.String("f", "", "Format of the output mp3,mp4,flv ...")
-	output = flag.String("o", "~/Download/YuxeGo/", "Output Folder.")
+	format = flag.Bool("mp3", false, "Convert to mp3 format if set.")
+	output = flag.String("o", "Downloads/YuxeGo/", "Output Folder.")
 	quality = flag.String("q", "", "Quality 720,480,360,240,144 ...")
 }
 

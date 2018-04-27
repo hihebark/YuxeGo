@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/user"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ import (
 type VideoFlag struct {
 	URL     string
 	Output  string
-	Format  string
+	Format  bool
 	Quality string
 }
 
@@ -95,7 +96,8 @@ func DownloadVideo(videoflag VideoFlag) {
 			if v.Quality == videoflag.Quality {
 				Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
 					videoflag.Quality, byteConverter(viSlice.videoInfo[0].Size)))
-				getVideo(v.URL, name, v.Size)
+				
+				getVideo(v.URL, name, v.Size, videoflag.Output)
 				break
 			}
 		}
@@ -106,7 +108,8 @@ func DownloadVideo(videoflag VideoFlag) {
 			})
 		Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
 			viSlice.videoInfo[0].Quality, byteConverter(viSlice.videoInfo[0].Size)))
-		getVideo(viSlice.videoInfo[0].URL, name, viSlice.videoInfo[0].Size)
+		
+		getVideo(viSlice.videoInfo[0].URL, name, viSlice.videoInfo[0].Size, videoflag.Output)
 	}
 	//http://blog.sorlo.com/youtube-fmt-list/
 	//formatSupported
@@ -133,9 +136,9 @@ func getVidID(urlvid string) string {
 	return id.Get("v")
 }
 
-func getVideo(path string, name string, size int64) {
+func getVideo(url string, name string, size int64, output string) {
 
-	response, err := http.Get(path)
+	response, err := http.Get(url)
 	if err != nil {
 		Bad(fmt.Sprintf("getVideo:%v", err))
 	}
@@ -143,12 +146,17 @@ func getVideo(path string, name string, size int64) {
 		Bad(fmt.Sprintf("response status: %d", response.StatusCode))
 		os.Exit(0)
 	}
-	err = os.MkdirAll("data/", 0755)
+	user, err := user.Current()
+	Printerr(err, "net:getVideo:user.Current:")
+	homeFolder := user.HomeDir
+	outputFolder := homeFolder +"/"+ output
+	err = os.MkdirAll(outputFolder, 0755)
 	if err != nil {
 		Bad(fmt.Sprintf("getVideo:MKdirAll:%v", err))
 	}
-	os.Remove(fmt.Sprintf("data/%s.flv", name))
-	vfile, err := os.Create(fmt.Sprintf("data/%s.flv", name))
+	Que(fmt.Sprintf("Output:%s", outputFolder))
+	os.Remove(fmt.Sprintf("%s%s.flv", output, name))
+	vfile, err := os.Create(fmt.Sprintf("%s%s.flv", outputFolder, name))
 	if err != nil {
 		Bad(fmt.Sprintf("os.Create:%v", err))
 	}
