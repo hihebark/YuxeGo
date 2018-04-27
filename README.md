@@ -9,17 +9,18 @@ Exemple how to use
 `./YuxeGo -u https://www.youtube.com/watch?v=XXXXXXXXXXX`
 
 ```
+
   .----.
 t(.___.t) - Yuxe
   `----
 Usage of ./YuxeGo:
-  -f string
-    	Format of the output mp3,mp4,flv ...
+  -mp3
+    	Convert to mp3 format if set.
   -o string
-    	Output Folder. (default "~/Download/YuxeGo/")
-  -q int
-    	Quality 720,480,360,240,144 ... (default 720)
+    	Output Folder. (default "Downloads/YuxeGo/")
+  -q string
+    	Quality 720,480,360,240,144 ...
   -u string
     	URL for the Youtube video.
-
+exit status 2
 ```
