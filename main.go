@@ -17,7 +17,8 @@ func init() {
 	flag.StringVar(&url, "u", "", "URL for the Youtube video.")
 	flag.BoolVar(&convert, "mp3", false, "Convert to mp3 format if set.")
 	flag.StringVar(&output, "o", "Downloads/YuxeGo/", "Output Folder.")
-	flag.StringVar(&quality, "q", "", "Quality 720,480,360,240,144 ...")
+	flag.StringVar(&quality, "q", "",
+		"Quality: small (240p),\n\t\tmedium (360p),\n\t\tlarge (480p),\n\t\thd720 (720p),\n\t\thd1080 (1080p).")
 }
 
 //Const: banner and verion of the app
