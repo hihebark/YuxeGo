@@ -93,9 +93,11 @@ func DownloadVideo(vf VideoFlag) {
 	}
 	if vf.Quality != "" {
 		for _, v := range viSlice.vidIn {
-			if v.Quality == vf.Quality {
+			Good(strings.Split(getQualityinfo(v.Quality), ":")[0])
+			if strings.Split(getQualityinfo(v.Quality), ":")[0] == vf.Quality {
 				Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
-					strings.Split(getQualityinfo(vf.Quality), ":")[0], byteConverter(viSlice.vidIn[0].Size)))
+					strings.Split(getQualityinfo(v.Quality), ":")[0],
+					byteConverter(viSlice.vidIn[0].Size)))
 				getVideo(v.URL,
 					name,
 					v.Size,
