@@ -10,7 +10,6 @@ import (
 // return cmd (output) or emty string if error.
 func Execute(pathExec string, args []string) (string, error) {
 
-	fmt.Printf("%v\n", args)
 	path, err := exec.LookPath(pathExec)
 	if err != nil {
 		return "", err
@@ -23,20 +22,17 @@ func Execute(pathExec string, args []string) (string, error) {
 
 }
 
-func ConvertToMp3(video string) {
-	if existe(video + ".flv") {
+//ConvertToMp3 convert the video given to mp3 format using ffmpeg
+func ConvertToMp3(video string, ext string) {
+	if existe(video + "." + ext) {
 		args := []string{
 			"-c",
-			//"ffmpeg",
-			//"-i",
-			//fmt.Sprintf("%s.flv", video),
-			//"-b:a 192K",
-			//"-vn",
-			fmt.Sprintf("ffmpeg -i '%s.flv' -b:a 192K -vn '%s.mp3'", video, video),
+			fmt.Sprintf("ffmpeg -i '%s.%s' -b:a 192K -vn '%s.mp3'", video, ext, video),
 		}
-		out, err := Execute("/bin/sh", args)
+		Good("Converting ...")
+		_, err := Execute("/bin/sh", args)
 		Printerr(err, "utils:convertToMp3:Execute "+video)
-		fmt.Printf("%v\n", out)
+		Good("Done.")
 	} else {
 		Bad("No such a file")
 	}

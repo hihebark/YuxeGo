@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/hihebark/YuxeGo/lib"
+	"os"
+	"strings"
 )
 
 var (
@@ -21,14 +23,19 @@ func init() {
 //Const: banner and verion of the app
 const (
 	BANNER  = "\033[92m  .----.\nt(\033[91m.\033[0m___\033[91m.\033[92mt) - Yuxe\n  `----\033[0m\n"
-	VERSION = "0.1.0-dev"
+	VERSION = "0.2.0-dev"
 )
 
 func main() {
 
-	fmt.Printf(BANNER)
+	fmt.Printf("%s\t%s\n\n", BANNER, VERSION)
 	flag.Parse()
 	if len(url) != 0 {
+		if !strings.Contains(url, "youtube.com") {
+			lib.Bad("Must be a youtube video.")
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
 		videodata := lib.VideoFlag{
 			URL:     url,
 			Output:  output,

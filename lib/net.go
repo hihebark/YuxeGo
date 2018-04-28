@@ -28,7 +28,7 @@ const (
 	VIDINFO = "https://youtube.com/get_video_info?video_id="
 )
 
-type videoInfo struct {
+type vidIn struct {
 	URL       string
 	Duration  string //`json:"duration"`
 	Extension string //`json:"extension"`
@@ -36,8 +36,8 @@ type videoInfo struct {
 	Quality   string
 }
 
-type videoInfoSlice struct {
-	videoInfo []videoInfo //`json:"url"`
+type vidInSlice struct {
+	vidIn []vidIn //`json:"url"`
 }
 
 type writeCounter struct {
@@ -64,7 +64,7 @@ func GetBody(urlVideo string) (string, error) {
 //DownloadVideo donwload video from url
 func DownloadVideo(vf VideoFlag) {
 
-	viSlice := videoInfoSlice{}
+	viSlice := vidInSlice{}
 	vidID := getVidID(strings.Split(vf.URL, "?")[1])
 	getVideoInfo, err := GetBody(VIDINFO + vidID)
 	if err != nil {
@@ -81,38 +81,51 @@ func DownloadVideo(vf VideoFlag) {
 		vidinfo, _ := url.ParseQuery(v)
 		size, _ := strconv.ParseInt(vidinfo["clen"][0], 10, 64)
 		duration, _ := time.ParseDuration(fmt.Sprintf("%ss", vidinfo["dur"][0]))
-		vi := videoInfo{
+		vi := vidIn{
 			URL:       pars["url"][k],
 			Duration:  duration.Round(time.Second).String(),
 			Extension: vidinfo["mime"][0],
 			Size:      size,
 			Quality:   vidinfo["itag"][0],
 		}
-		viSlice.videoInfo = append(viSlice.videoInfo, vi)
+		viSlice.vidIn = append(viSlice.vidIn, vi)
 
 	}
 	if vf.Quality != "" {
-		for _, v := range viSlice.videoInfo {
+		for _, v := range viSlice.vidIn {
 			if v.Quality == vf.Quality {
 				Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
-					vf.Quality, byteConverter(viSlice.videoInfo[0].Size)))
-
-				getVideo(v.URL, name, v.Size, vf.Output, vf.Convert)
+					strings.Split(getQualityinfo(vf.Quality), ":")[0], byteConverter(viSlice.vidIn[0].Size)))
+				getVideo(v.URL,
+					name,
+					v.Size,
+					vf.Output,
+					vf.Convert,
+					v.Quality)
 				break
 			}
 		}
 	} else {
-		sort.Slice(viSlice.videoInfo,
+		sort.Slice(viSlice.vidIn,
 			func(i, j int) bool {
-				return viSlice.videoInfo[j].Quality < viSlice.videoInfo[i].Quality
+				return viSlice.vidIn[j].Quality < viSlice.vidIn[i].Quality
 			})
 		Good(fmt.Sprintf("Downloading with the quality: %s - size: %s\n",
-			viSlice.videoInfo[0].Quality, byteConverter(viSlice.videoInfo[0].Size)))
-
-		getVideo(viSlice.videoInfo[0].URL, name, viSlice.videoInfo[0].Size, vf.Output, vf.Convert)
+			strings.Split(getQualityinfo(viSlice.vidIn[0].Quality), ":")[0],
+			byteConverter(viSlice.vidIn[0].Size)))
+		getVideo(viSlice.vidIn[0].URL,
+			name,
+			viSlice.vidIn[0].Size,
+			vf.Output,
+			vf.Convert,
+			viSlice.vidIn[0].Quality)
 	}
-	//http://blog.sorlo.com/youtube-fmt-list/
-	//formatSupported
+
+}
+
+func getQualityinfo(fmt string) string {
+	// http://blog.sorlo.com/youtube-fmt-list/
+	// Format supported
 	// From here https://pastebin.com/5hDj7kLj
 	// fmt=5    240p          vq=small     flv  mp3
 	// fmt=18   360p          vq=medium    mp4  aac
@@ -124,7 +137,29 @@ func DownloadVideo(vf VideoFlag) {
 	// fmt=45   720p          vq=hd720     vp8  vorbis
 	// fmt=37  1080p          vq=hd1080    mp4  aac
 	// fmt=46  1080p          vq=hd1080    vp8  vorbis
-
+	switch fmt {
+	case "5":
+		return "small:flv"
+	case "18":
+		return "medium:mp4"
+	case "34":
+		return "medium:flv"
+	case "43":
+		return "medium:vp8"
+	case "35":
+		return "large:flv"
+	case "44":
+		return "large:vp8"
+	case "22":
+		return "hd720:mp4"
+	case "45":
+		return "hd720:vp8"
+	case "37":
+		return "hd1080:mp4"
+	case "46":
+		return "hd1080:vp8"
+	}
+	return ""
 }
 
 //getVidID get video id
@@ -136,7 +171,7 @@ func getVidID(urlvid string) string {
 	return id.Get("v")
 }
 
-func getVideo(url string, name string, size int64, output string, conv bool) {
+func getVideo(url string, name string, size int64, output string, conv bool, q string) {
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -154,9 +189,10 @@ func getVideo(url string, name string, size int64, output string, conv bool) {
 	if err != nil {
 		Bad(fmt.Sprintf("getVideo:MKdirAll:%v", err))
 	}
+	ext := strings.Split(getQualityinfo(q), ":")[1]
 	Que(fmt.Sprintf("Output:%s", outputFolder))
-	os.Remove(fmt.Sprintf("%s%s.flv", output, name))
-	vfile, err := os.Create(fmt.Sprintf("%s%s.flv", outputFolder, name))
+	os.Remove(fmt.Sprintf("%s%s.%s", output, name, ext))
+	vfile, err := os.Create(fmt.Sprintf("%s%s.%s", outputFolder, name, ext))
 	if err != nil {
 		Bad(fmt.Sprintf("os.Create:%v", err))
 	}
@@ -166,7 +202,7 @@ func getVideo(url string, name string, size int64, output string, conv bool) {
 	}
 	fmt.Printf("\n")
 	if conv {
-		ConvertToMp3(fmt.Sprintf("%s%s", outputFolder, name))
+		ConvertToMp3(fmt.Sprintf("%s%s", outputFolder, name), ext)
 	}
 
 }
