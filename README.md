@@ -7,7 +7,9 @@ Exemple how to use
 ------------------
 
 `./YuxeGo -u https://www.youtube.com/watch?v=XXXXXXXXXXX`
+
 convert to mp3:
+
 `./YuxeGo -u https://www.youtube.com/watch?v=XXXXXXXXXXX -mp3`
 
 ```
