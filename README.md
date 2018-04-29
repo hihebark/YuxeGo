@@ -1,10 +1,21 @@
+<p align="center">
+    <a href="https://godoc.org/github.com/hihebark/YuxeGo">
+        <img src="https://godoc.org/github.com/hihebark/YuxeGo?status.svg" alt="GoDoc">
+    </a>
+    <a href="https://goreportcard.com/report/github.com/hihebark/YuxeGo">
+        <img src="https://goreportcard.com/badge/github.com/hihebark/YuxeGo" alt="GoReportCard">
+    </a>
+    </a>
+    <a href="https://github.com/hihebark/YuxeGo/blob/master/LICENSE">
+        <img src="https://img.shields.io/aur/license/yaourt.svg" alt="license">
+    </a>
+</p>
+
 YuxeGo
 ======
 
-Work in progress. Nothing to see here!
-
-Exemple how to use
-------------------
+Exemple:
+--------
 
 `./YuxeGo -u https://www.youtube.com/watch?v=XXXXXXXXXXX`
 

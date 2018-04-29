@@ -37,13 +37,13 @@ func main() {
 			flag.PrintDefaults()
 			os.Exit(1)
 		}
-		videodata := lib.VideoFlag{
+		videoflag := lib.VideoFlag{
 			URL:     url,
 			Output:  output,
 			Convert: convert,
 			Quality: quality,
 		}
-		lib.DownloadVideo(videodata)
+		lib.DownloadVideo(videoflag)
 	} else {
 		lib.Bad("No url provided.")
 		flag.PrintDefaults()
